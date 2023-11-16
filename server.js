@@ -6,6 +6,8 @@ const expect = require("chai").expect;
 const cors = require("cors");
 require("dotenv").config();
 
+const connectDb = require("./connectDb.js");
+
 const apiRoutes = require("./routes/api.js");
 const fccTestingRoutes = require("./routes/fcctesting.js");
 const runner = require("./test-runner");
@@ -40,6 +42,11 @@ app.use(function (req, res, next) {
   res.status(404).type("text").send("Not Found");
 });
 
+// TODO: fix this part
+const database = connectDb();
+const collection = await database.collection("issues");
+
+console.log("--------->>> ", collection);
 //Start our server and tests!
 const listener = app.listen(process.env.PORT || 3000, function () {
   console.log("Your app is listening on port " + listener.address().port);
