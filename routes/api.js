@@ -1,11 +1,14 @@
 "use strict";
-
+const { getIssuesCollection } = require("../database.js");
 module.exports = function (app) {
   app
     .route("/api/issues/:project")
 
-    .get(function (req, res) {
+    .get(async function (req, res) {
       let project = req.params.project;
+      const issuesCollection = await getIssuesCollection();
+      const allIssues = await issuesCollection.find({ test: "bla" }).toArray();
+      console.log("allIssues---", allIssues);
       console.log("------get--> ", project);
     })
 

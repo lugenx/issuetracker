@@ -6,7 +6,7 @@ const expect = require("chai").expect;
 const cors = require("cors");
 require("dotenv").config();
 
-const connectDb = require("./connectDb.js");
+const { connectDb } = require("./database.js");
 
 const apiRoutes = require("./routes/api.js");
 const fccTestingRoutes = require("./routes/fcctesting.js");
@@ -42,25 +42,26 @@ app.use(function (req, res, next) {
   res.status(404).type("text").send("Not Found");
 });
 
-// TODO: fix this part
-const database = connectDb();
-const collection = await database.collection("issues");
-
-console.log("--------->>> ", collection);
 //Start our server and tests!
-const listener = app.listen(process.env.PORT || 3000, function () {
-  console.log("Your app is listening on port " + listener.address().port);
-  if (process.env.NODE_ENV === "test") {
-    console.log("Running Tests...");
-    setTimeout(function () {
-      try {
-        runner.run();
-      } catch (e) {
-        console.log("Tests are not valid:");
-        console.error(e);
-      }
-    }, 3500);
-  }
-});
 
+const startServer = async () => {
+  await connectDb();
+
+  const listener = app.listen(process.env.PORT || 3000, function () {
+    console.log("Your app is listening on port " + listener.address().port);
+    if (process.env.NODE_ENV === "test") {
+      console.log("Running Tests...");
+      setTimeout(function () {
+        try {
+          runner.run();
+        } catch (e) {
+          console.log("Tests are not valid:");
+          console.error(e);
+        }
+      }, 3500);
+    }
+  });
+};
+
+startServer();
 module.exports = app; //for testing
