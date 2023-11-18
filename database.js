@@ -11,14 +11,14 @@ const client = new MongoClient(process.env.MONGODB_URI, {
   },
 });
 
-let issuesCollection;
+let database;
 
 async function connectDb() {
   try {
     // Connect the client to the server (optional starting in v4.7)
     await client.connect();
-    const database = client.db("quality-assurance-cert-projects");
-    issuesCollection = database.collection("issues");
+    database = client.db("quality-assurance-cert-projects");
+
     return database;
   } catch (err) {
     console.log("MongoDB Connection Error: ", err);
@@ -26,8 +26,11 @@ async function connectDb() {
   }
 }
 
-function getIssuesCollection() {
-  return issuesCollection;
+// TODO: create a createCollection function to use
+
+function getCollection(myCollection) {
+  const gotCollection = database.collection(myCollection);
+  return gotCollection;
 }
 
-module.exports = { connectDb, getIssuesCollection };
+module.exports = { connectDb, getCollection };
