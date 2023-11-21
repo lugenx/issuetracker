@@ -15,7 +15,6 @@ let database;
 
 async function connectDb() {
   try {
-    // Connect the client to the server (optional starting in v4.7)
     await client.connect();
     database = client.db("quality-assurance-cert-projects");
 
@@ -26,11 +25,36 @@ async function connectDb() {
   }
 }
 
-// TODO: create a createCollection function to use
+async function isCollectionExists(collectionName) {
+  const collections = await database.listCollections().toArray();
+  const collectionNames = collections.map((c) => c.name);
+
+  if (collectionNames.includes(collectionName)) {
+    return true;
+  } else {
+    false;
+  }
+}
+
+async function createCollection(name) {
+  try {
+    const res = await database.createCollection(name);
+
+    return res;
+  } catch (error) {
+    console.log("Error creating collection: ", error);
+    return undefined;
+  }
+}
 
 function getCollection(myCollection) {
   const gotCollection = database.collection(myCollection);
   return gotCollection;
 }
 
-module.exports = { connectDb, getCollection };
+module.exports = {
+  connectDb,
+  isCollectionExists,
+  createCollection,
+  getCollection,
+};
