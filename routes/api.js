@@ -4,14 +4,17 @@ const {
   createCollection,
   isCollectionExists,
 } = require("../database.js");
+const { ObjectId } = require("mongodb");
 module.exports = function (app) {
   app
     .route("/api/issues/:project")
 
     .get(async function (req, res) {
       let project = req.params.project;
+
       const collection = await getCollection(project);
       const allIssues = await collection.find({}).toArray();
+
       res.send(allIssues);
     })
 
@@ -44,17 +47,28 @@ module.exports = function (app) {
 
       const id = new ObjectId(req.body._id);
 
-      // TODO: fix find and update
       const issue = await collection.findOneAndUpdate(
         { _id: id },
         { $set: { open: false } }
       );
-      console.log("------put--> ", project);
-      console.log("-----returned issue ", issue);
+      if (issue) {
+        const collection = await getCollection(project);
+        const allIssues = await collection.find({}).toArray();
+        res.send(allIssues);
+      }
     })
 
-    .delete(function (req, res) {
+    .delete(async function (req, res) {
       let project = req.params.project;
-      console.log("------delete--> ", project);
+      const collection = await getCollection(project);
+
+      const id = new ObjectId(req.body._id);
+
+      const issue = await collection.findOneAndDelete({ _id: id });
+      if (issue) {
+        const collection = await getCollection(project);
+        const allIssues = await collection.find({}).toArray();
+        res.send(allIssues);
+      }
     });
 };
