@@ -38,6 +38,7 @@ module.exports = function (app) {
 
       const savedIssue = await collection.insertOne(issue);
       const responseObj = { ...savedIssue.insertedId, ...issue };
+      console.log("--------response object", responseObj);
       res.send(responseObj);
     })
 
@@ -49,7 +50,7 @@ module.exports = function (app) {
 
       const issue = await collection.findOneAndUpdate(
         { _id: id },
-        { $set: { open: false } }
+        { $set: { open: false, updated_on: new Date() } }
       );
       if (issue) {
         const collection = await getCollection(project);
