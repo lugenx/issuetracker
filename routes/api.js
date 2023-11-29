@@ -15,7 +15,7 @@ module.exports = function (app) {
       const collection = await getCollection(project);
       const allIssues = await collection.find({}).toArray();
 
-      res.send(allIssues);
+      res.json(allIssues);
     })
 
     .post(async function (req, res) {
@@ -39,7 +39,7 @@ module.exports = function (app) {
       const savedIssue = await collection.insertOne(issue);
       const responseObj = { ...savedIssue.insertedId, ...issue };
       console.log("--------response object", responseObj);
-      res.send(responseObj);
+      res.json(responseObj);
     })
 
     .put(async function (req, res) {
@@ -55,7 +55,7 @@ module.exports = function (app) {
       if (issue) {
         const collection = await getCollection(project);
         const allIssues = await collection.find({}).toArray();
-        res.send(allIssues);
+        res.json(allIssues);
       }
     })
 
@@ -69,7 +69,7 @@ module.exports = function (app) {
       if (issue) {
         const collection = await getCollection(project);
         const allIssues = await collection.find({}).toArray();
-        res.send(allIssues);
+        res.json(allIssues);
       }
     });
 };
