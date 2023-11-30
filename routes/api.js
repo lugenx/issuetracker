@@ -15,7 +15,7 @@ module.exports = function (app) {
       const collection = await getCollection(project);
       const allIssues = await collection.find({}).toArray();
 
-      res.json(allIssues);
+      res.send(allIssues);
     })
 
     .post(async function (req, res) {
@@ -28,18 +28,24 @@ module.exports = function (app) {
       }
 
       const collection = await getCollection(project);
+      console.log("---req.body---", req.body);
 
       const issue = {
-        ...req.body,
+        issue_title: await req.body.issue_title,
+        issue_text: await req.body.issue_text,
+        created_by: await req.body.created_by,
+        assigned_to: (await req.body.assigned_to) || "",
+        status_text: (await req.body.assigned_to) || "",
         created_on: new Date(),
         updated_on: new Date(),
         open: true,
       };
-
+      console.log("----issue ", issue);
       const savedIssue = await collection.insertOne(issue);
+      console.log("-----savedIssue, ", savedIssue);
       const responseObj = { ...savedIssue.insertedId, ...issue };
       console.log("--------response object", responseObj);
-      res.json(responseObj);
+      res.send(await responseObj);
     })
 
     .put(async function (req, res) {
@@ -55,7 +61,7 @@ module.exports = function (app) {
       if (issue) {
         const collection = await getCollection(project);
         const allIssues = await collection.find({}).toArray();
-        res.json(allIssues);
+        res.send(allIssues);
       }
     })
 
@@ -69,7 +75,7 @@ module.exports = function (app) {
       if (issue) {
         const collection = await getCollection(project);
         const allIssues = await collection.find({}).toArray();
-        res.json(allIssues);
+        res.send(allIssues);
       }
     });
 };
