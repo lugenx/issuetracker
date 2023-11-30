@@ -29,7 +29,7 @@ module.exports = function (app) {
 
       const collection = await getCollection(project);
       console.log("---req.body---", req.body);
-
+      // TODO: it doesnt not respond correctly, fix this.
       const issue = {
         issue_title: await req.body.issue_title,
         issue_text: await req.body.issue_text,
