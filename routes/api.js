@@ -1,4 +1,5 @@
 "use strict";
+const { json } = require("body-parser");
 const {
   getCollection,
   createCollection,
@@ -12,10 +13,15 @@ module.exports = function (app) {
     .get(async function (req, res) {
       let project = req.params.project;
 
-      const collection = await getCollection(project);
-      const allIssues = await collection.find({}).toArray();
+      const query = await req.query;
 
-      res.send(allIssues);
+      if (query.open) query.open = JSON.parse(query.open);
+
+      const collection = await getCollection(project);
+
+      const issues = await collection.find(query).toArray();
+
+      res.send(issues);
     })
 
     .post(async function (req, res) {
@@ -28,24 +34,37 @@ module.exports = function (app) {
       }
 
       const collection = await getCollection(project);
-      console.log("---req.body---", req.body);
-      // TODO: it doesnt not respond correctly, fix this.
-      const issue = {
-        issue_title: await req.body.issue_title,
-        issue_text: await req.body.issue_text,
-        created_by: await req.body.created_by,
-        assigned_to: (await req.body.assigned_to) || "",
-        status_text: (await req.body.assigned_to) || "",
-        created_on: new Date(),
-        updated_on: new Date(),
-        open: true,
-      };
-      console.log("----issue ", issue);
-      const savedIssue = await collection.insertOne(issue);
-      console.log("-----savedIssue, ", savedIssue);
-      const responseObj = { ...savedIssue.insertedId, ...issue };
-      console.log("--------response object", responseObj);
-      res.send(await responseObj);
+
+      try {
+        const {
+          issue_title,
+          issue_text,
+          created_by,
+          assigned_to,
+          status_text,
+        } = await req.body;
+
+        if (!issue_title || !issue_text)
+          throw Error("required field(s) missing");
+
+        const issue = {
+          issue_title,
+          issue_text,
+          created_by,
+          assigned_to,
+          status_text: status_text || "",
+          created_on: new Date(),
+          updated_on: new Date(),
+          open: true,
+        };
+
+        const savedIssue = await collection.insertOne(issue);
+        const responseObj = { ...savedIssue.insertedId, ...issue };
+
+        res.send(await responseObj);
+      } catch (error) {
+        res.send({ error: error.message });
+      }
     })
 
     .put(async function (req, res) {
