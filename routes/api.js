@@ -68,19 +68,36 @@ module.exports = function (app) {
     })
 
     .put(async function (req, res) {
-      let project = req.params.project;
-      const collection = await getCollection(project);
+      try {
+        let project = req.params.project;
 
-      const id = new ObjectId(req.body._id);
-
-      const issue = await collection.findOneAndUpdate(
-        { _id: id },
-        { $set: { open: false, updated_on: new Date() } }
-      );
-      if (issue) {
         const collection = await getCollection(project);
-        const allIssues = await collection.find({}).toArray();
-        res.send(allIssues);
+
+        const { _id, ...dataToUpdate } = req.body;
+
+        if (!_id) throw Error("missing _id");
+
+        if (Object.keys(dataToUpdate).length < 1) {
+          throw Error("no update field(s) sent", `'_id': ${_id}`);
+        }
+
+        const id = new ObjectId(_id);
+
+        dataToUpdate.updated_on = new Date();
+
+        const issue = await collection.findOneAndUpdate(
+          { _id: id },
+          { $set: { ...dataToUpdate } },
+          { returnDocument: "after" }
+        );
+
+        if (issue) {
+          res.send({ result: "successfully updated", _id: _id });
+        } else {
+          throw Error("could not update", `"_id": ${_id}`);
+        }
+      } catch (error) {
+        res.send({ error: error.message });
       }
     })
 
