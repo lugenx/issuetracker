@@ -75,29 +75,27 @@ module.exports = function (app) {
 
         const { _id, ...dataToUpdate } = req.body;
 
-        if (!_id) throw Error("missing _id");
+        if (!_id) return res.send({ error: "missing _id" });
 
         if (Object.keys(dataToUpdate).length < 1) {
-          throw Error("no update field(s) sent", `'_id': ${_id}`);
+          throw new Error("no update field(s) sent");
         }
 
         const id = new ObjectId(_id);
 
         dataToUpdate.updated_on = new Date();
-
         const issue = await collection.findOneAndUpdate(
           { _id: id },
-          { $set: { ...dataToUpdate } },
-          { returnDocument: "after" }
+          { $set: { ...dataToUpdate } }
+          // { returnDocument: "after" }
         );
-
         if (issue) {
           res.send({ result: "successfully updated", _id: _id });
         } else {
-          throw Error("could not update", `"_id": ${_id}`);
+          throw new Error("could not update");
         }
       } catch (error) {
-        res.send({ error: error.message });
+        res.send({ error: error.message, _id: req.body._id });
       }
     })
 
