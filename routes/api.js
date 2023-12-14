@@ -86,8 +86,8 @@ module.exports = function (app) {
         dataToUpdate.updated_on = new Date();
         const issue = await collection.findOneAndUpdate(
           { _id: id },
-          { $set: { ...dataToUpdate } }
-          // { returnDocument: "after" }
+          { $set: { ...dataToUpdate } },
+          { returnDocument: "after" }
         );
         if (issue) {
           res.send({ result: "successfully updated", _id: _id });
@@ -100,16 +100,24 @@ module.exports = function (app) {
     })
 
     .delete(async function (req, res) {
-      let project = req.params.project;
-      const collection = await getCollection(project);
-
-      const id = new ObjectId(req.body._id);
-
-      const issue = await collection.findOneAndDelete({ _id: id });
-      if (issue) {
+      try {
+        let project = req.params.project;
         const collection = await getCollection(project);
-        const allIssues = await collection.find({}).toArray();
-        res.send(allIssues);
+
+        const { _id } = req.body;
+
+        if (!_id) return res.send({ error: "missing _id" });
+
+        const id = new ObjectId(req.body._id);
+
+        const response = await collection.findOneAndDelete({ _id: id });
+        if (response) {
+          res.send({ result: "successfully deleted", _id: _id });
+        } else {
+          throw new Error("could not delete");
+        }
+      } catch (error) {
+        res.send({ error: error.message, _id: req.body._id });
       }
     });
 };
