@@ -12,16 +12,20 @@ module.exports = function (app) {
 
     .get(async function (req, res) {
       let project = req.params.project;
+      try {
+        const query = req.query;
 
-      const query = await req.query;
+        if (query.open) query.open = JSON.parse(query.open);
 
-      if (query.open) query.open = JSON.parse(query.open);
+        const collection = await getCollection(project);
 
-      const collection = await getCollection(project);
+        const issues = await collection.find(query).toArray();
 
-      const issues = await collection.find(query).toArray();
-
-      res.send(issues);
+        res.send(issues);
+      } catch (error) {
+        console.error("Error in GET /api/issues/:project:", error);
+        res.status(500).send({ error: "Internal Server Error" });
+      }
     })
 
     .post(async function (req, res) {
@@ -78,23 +82,29 @@ module.exports = function (app) {
         if (!_id) return res.send({ error: "missing _id" });
 
         if (Object.keys(dataToUpdate).length < 1) {
-          throw new Error("no update field(s) sent");
+          return res.send({ error: "no update field(s) sent", _id });
         }
 
         const id = new ObjectId(_id);
 
+        const idIsValid = await collection.findOne({ _id: id });
+        if (!idIsValid) {
+          return res.send({ error: "could not update", _id: _id });
+        }
         dataToUpdate.updated_on = new Date();
         const issue = await collection.findOneAndUpdate(
           { _id: id },
           { $set: { ...dataToUpdate } },
           { returnDocument: "after" }
         );
+
         if (issue) {
           res.send({ result: "successfully updated", _id: _id });
         } else {
           throw new Error("could not update");
         }
       } catch (error) {
+        console.error(error);
         res.send({ error: error.message, _id: req.body._id });
       }
     })
