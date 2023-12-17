@@ -14,9 +14,8 @@ module.exports = function (app) {
       let project = req.params.project;
       try {
         const query = req.query;
-
         if (query.open) query.open = JSON.parse(query.open);
-
+        if (query._id) query._id = new ObjectId(query._id);
         const collection = await getCollection(project);
 
         const issues = await collection.find(query).toArray();
