@@ -1,5 +1,5 @@
 "use strict";
-// TODO: fix freecodecamp errors. Hosted url: https://issuetracker-p7lf.onrender.com/
+
 const express = require("express");
 const bodyParser = require("body-parser");
 const expect = require("chai").expect;
