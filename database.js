@@ -52,9 +52,15 @@ function getCollection(myCollection) {
   return gotCollection;
 }
 
+function deleteCollection(myCollection) {
+  const deletedCollection = database.collection(myCollection).deleteMany({});
+  return deletedCollection;
+}
+
 module.exports = {
   connectDb,
   isCollectionExists,
   createCollection,
   getCollection,
+  deleteCollection,
 };

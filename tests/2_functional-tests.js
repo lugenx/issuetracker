@@ -2,6 +2,7 @@ const chaiHttp = require("chai-http");
 const chai = require("chai");
 const assert = chai.assert;
 const server = require("../server");
+const { deleteCollection } = require("../database.js");
 
 chai.use(chaiHttp);
 
@@ -10,7 +11,9 @@ Create an issue with every field: POST request to /api/issues/{project}
 Create an issue with only required fields: POST request to /api/issues/{project}
 Create an issue with missing required fields: POST request to /api/issues/{project}
 View issues on a project: GET request to /api/issues/{project}
+
 View issues on a project with one filter: GET request to /api/issues/{project}
+
 View issues on a project with multiple filters: GET request to /api/issues/{project}
 Update one field on an issue: PUT request to /api/issues/{project}
 Update multiple fields on an issue: PUT request to /api/issues/{project}
@@ -23,13 +26,19 @@ Delete an issue with missing _id: DELETE request to /api/issues/{project}
   *
   */
 
-// TODO: fix tests below; set headers properly, and correct syntax. --> https://www.chaijs.com/plugins/chai-http/
+// TODO: fix tests below; tests dont run when npm test (with timeout), but runs when start the server
 suite("Functional Tests", function () {
+  // clean up database before tests start
+  suiteSetup(async () => {
+    const deletedCollection = await deleteCollection("testissues");
+    console.log("deletedCollection---------->", await deletedCollection);
+  });
+
   test("Create an issue with every field: POST request to /api/issues/{project}", async function () {
     try {
       const res = await chai
         .request(server)
-        .post("/api/issues/training")
+        .post("/api/issues/testissues")
         .set("Content-Type", "application/json")
         .send({
           issue_title: "oneissuetitle",
@@ -38,6 +47,7 @@ suite("Functional Tests", function () {
           assigned_to: "oneissueassignee",
           status_text: "active",
         });
+
       assert.isObject(res.body);
       assert.strictEqual(res.body.issue_title, "oneissuetitle");
       assert.strictEqual(res.body.issue_text, "oneissuetext");
@@ -57,13 +67,14 @@ suite("Functional Tests", function () {
   test("Create an issue with only required fields: POST request to /api/issues/{project}", async function () {
     const res = await chai
       .request(server)
-      .post("/api/issues/training")
+      .post("/api/issues/testissues")
       .set("Content-Type", "application/json")
       .send({
         issue_title: "twoissuetitle",
         issue_text: "twoissuetext",
         created_by: "twoissuecreator",
       });
+
     assert.isObject(res.body);
     assert.strictEqual(res.body.issue_title, "twoissuetitle");
     assert.strictEqual(res.body.issue_text, "twoissuetext");
@@ -79,7 +90,7 @@ suite("Functional Tests", function () {
   test("Create an issue with missing required fields: POST request to /api/issues/{project}", async function () {
     const res = await chai
       .request(server)
-      .post("/api/issues/training")
+      .post("/api/issues/testissues")
       .set("Content-Type", "application/json")
       .send({
         assigned_to: "threeissueassignee",
@@ -90,7 +101,7 @@ suite("Functional Tests", function () {
   });
 
   test("View issues on a project: GET request to /api/issues/{project}", async function () {
-    const res = await chai.request(server).get("/api/issues/training");
+    const res = await chai.request(server).get("/api/issues/testissues");
 
     assert.isArray(res.body);
 
@@ -107,5 +118,13 @@ suite("Functional Tests", function () {
         "open",
       ]);
     }
+  });
+
+  test("View issues on a project with one filter: GET request to /api/issues/{project}", async function () {
+    const res = await chai
+      .request(server)
+      // TODO: below string will be updated
+      .get("/api/issues/{project}?open=true&assigned_to=Joe");
+    // tests will go here
   });
 });
